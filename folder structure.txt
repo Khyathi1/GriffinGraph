@@ -1,0 +1,16 @@
+prism-charts/
+├── src/
+│   ├── components/
+│   │   ├── Sidebar.jsx
+│   │   ├── StatCard.jsx
+│   │   └── charts/
+│   │       ├── BarChart.jsx
+│   │       ├── LineChart.jsx
+│   │       └── PieChart.jsx
+│   ├── data/
+│   │   └── mockData.js
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+├── tailwind.config.js
+└── package.json

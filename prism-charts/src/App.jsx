@@ -1,64 +1,82 @@
-import React from 'react'; 
+import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
-import StatCard from './components/StatCard';
-import LineChartComponent from './components/charts/LineChart';
-import BarChartComponent from './components/charts/BarChart';
-import PieChartComponent from './components/charts/PieChart';
-import { TrendingUp, PieChart as PieIcon, BarChart3 } from 'lucide-react';
+import DataUploader from './components/DataUploader';
+import ChartBuilder from './components/ChartBuilder';
+import { Plus } from 'lucide-react';
 
 function App() {
+  const [folders, setFolders] = useState([
+    { id: '1', name: 'Market Research', files: [] }
+  ]);
+  const [activeFolderId, setActiveFolderId] = useState('1');
+  const [selectedFileData, setSelectedFileData] = useState(null);
+
+  const activeFolder = folders.find(f => f.id === activeFolderId);
+
+  const addFolder = () => {
+    const name = prompt("Enter folder name:");
+    if (name) {
+      setFolders([...folders, { id: Date.now().toString(), name, files: [] }]);
+    }
+  };
+
+  const onFileUpload = (data, fileName) => {
+    const updatedFolders = folders.map(f => {
+      if (f.id === activeFolderId) {
+        return { ...f, files: [...f.files, { name: fileName, data }] };
+      }
+      return f;
+    });
+    setFolders(updatedFolders);
+    setSelectedFileData(data); // Preview immediately
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar Component - Imported from components/Sidebar.jsx */}
-      <Sidebar />
+      <Sidebar 
+        folders={folders} 
+        activeFolder={activeFolderId} 
+        setActiveFolder={setActiveFolderId} 
+      />
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <header className="bg-white border-b border-slate-200 p-6">
-          <div className="flex justify-between items-center">
+      <main className="flex-1 p-8 overflow-y-auto">
+        <div className="max-w-6xl mx-auto">
+          <header className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">Prism Dashboard</h1>
-              <p className="text-slate-500 text-sm">Real-time data visualization overview</p>
+              <h1 className="text-2xl font-bold text-slate-800">{activeFolder?.name}</h1>
+              <p className="text-slate-500">Manage your datasets and generate PrismCharts</p>
             </div>
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
-              Export Report
+            <button 
+              onClick={addFolder}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+            >
+              <Plus size={18} /> New Folder
             </button>
-          </div>
-        </header>
+          </header>
 
-        <div className="p-6 space-y-6">
-          {/* Stats Cards - Using the StatCard component */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard title="Total Revenue" value="$42,500" growth="+12.5%" />
-            <StatCard title="Active Users" value="1,284" growth="+3.2%" />
-            <StatCard title="Conversion Rate" value="4.8%" growth="-0.4%" isNegative />
-          </div>
+          <div className="grid grid-cols-1 gap-8">
+            {/* Uploader Section */}
+            {!selectedFileData && (
+              <DataUploader onUpload={onFileUpload} />
+            )}
 
-          {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Main Trend Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
-              <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                <TrendingUp size={20} className="text-indigo-500"/> Revenue Over Time
-              </h3>
-              <LineChartComponent />
+            {/* List existing files in folder */}
+            <div className="flex gap-4 mb-4 overflow-x-auto pb-2">
+              {activeFolder?.files.map((file, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setSelectedFileData(file.data)}
+                  className="bg-white border border-slate-200 px-4 py-2 rounded-md text-sm font-medium hover:border-indigo-500 transition"
+                >
+                  📄 {file.name}
+                </button>
+              ))}
             </div>
 
-            {/* Bar Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                <BarChart3 size={20} className="text-emerald-500"/> Profit Analysis
-              </h3>
-              <BarChartComponent />
-            </div>
-
-            {/* Pie Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                <PieIcon size={20} className="text-amber-500"/> Market Share
-              </h3>
-              <PieChartComponent />
-            </div>
+            {/* Chart Builder Section */}
+            {selectedFileData && (
+              <ChartBuilder data={selectedFileData} onClear={() => setSelectedFileData(null)} />
+            )}
           </div>
         </div>
       </main>
